@@ -1,0 +1,453 @@
+Group members: Anfal Faruqi (61433)
+               Fatima Bukhari (58634)
+               Nida Iqbal (58976)
+               Wajeeha Aqdas (58903)
+
+create database StudentPortfolioManagementSystem;
+use StudentPortfolioManagementSystem;
+
+-- StudentAccount table
+CREATE TABLE StudentAccount (
+    AccountID INT PRIMARY KEY AUTO_INCREMENT,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- StudentProfile table
+CREATE TABLE StudentProfile (
+    ProfileID INT PRIMARY KEY AUTO_INCREMENT,
+    AccountID INT UNIQUE NOT NULL,
+    FullName VARCHAR(100),
+    DateOfBirth DATE,
+    Skills TEXT,
+    Resume VARCHAR(255),
+    Bio TEXT,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID) ON DELETE CASCADE
+);
+
+ALTER TABLE StudentProfile
+ADD COLUMN University VARCHAR(100);
+
+CREATE TABLE Company (
+    CompanyID INT AUTO_INCREMENT PRIMARY KEY,
+    CompanyName VARCHAR(150) NOT NULL,
+    ContactEmail VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(100) NOT NULL,
+    Industry VARCHAR(100),
+    Location VARCHAR(150)
+);
+
+CREATE TABLE Project (
+    ProjectID INT AUTO_INCREMENT PRIMARY KEY,
+    AccountID INT,
+    Title VARCHAR(150) NOT NULL,
+    Description TEXT,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE ContactRequest (
+    RequestID INT AUTO_INCREMENT PRIMARY KEY,
+    AccountID INT,
+    CompanyID INT,
+    Message TEXT,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID)
+    ON DELETE CASCADE,
+    FOREIGN KEY (CompanyID) REFERENCES Company(CompanyID)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE Bookmark (
+    BookmarkID INT AUTO_INCREMENT PRIMARY KEY,
+	AccountID INT,
+    ProjectID INT,
+    BookmarkDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID)
+    ON DELETE CASCADE,
+    FOREIGN KEY (ProjectID) REFERENCES Project(ProjectID)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE Notification (
+    NotificationID INT AUTO_INCREMENT PRIMARY KEY,
+	AccountID INT,
+    Message VARCHAR(255),
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    IsRead BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID)
+    ON DELETE CASCADE 
+);
+
+CREATE TABLE Tags(
+TagID INT AUTO_INCREMENT PRIMARY KEY,
+TagName VARCHAR(90)
+);
+
+CREATE TABLE ProjectTag (
+    ProjectID INT,
+    TagID INT,
+    PRIMARY KEY(ProjectID, TagID),
+    FOREIGN KEY (ProjectID) REFERENCES Project(ProjectID) ON DELETE CASCADE,
+    FOREIGN KEY (TagID) REFERENCES Tags(TagID) ON DELETE CASCADE
+);
+
+CREATE TABLE CompanyBookmark (
+    BookmarkID INT AUTO_INCREMENT PRIMARY KEY,
+    CompanyID INT NOT NULL,
+    AccountID INT NOT NULL, -- The student being bookmarked
+    Note VARCHAR(255),      -- Optional note by the company
+    SavedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CompanyID) REFERENCES Company(CompanyID) ON DELETE CASCADE,
+    FOREIGN KEY (AccountID) REFERENCES StudentAccount(AccountID) ON DELETE CASCADE
+);
+
+-- Insert dummy accounts
+INSERT INTO StudentAccount (Email, Password) 
+VALUES 
+('ahmed.m@fast.edu', 'Ah_Pass123'),
+('sara.f@gmail.com', 'Sara_Pass123'),
+('omar.h@net.com', 'Omar_Pass123'),
+('z.qureshi@email.com', 'Zainab_Pass123'),
+('h.malik@dev.io', 'Hamza_Pass123'),
+('m.idris@stuspace.com', 'Maryam_Pass123'),
+('yousef.b@webmail.com', 'Yousef_Pass123'),
+('fatima.z@itcorp.com', 'Fatima_Pass123'),
+('bilal.k@academia.edu', 'Bilal_Pass123'),
+('ayesha.s@creative.com', 'Ayesha_Pass123');
+Select* from StudentAccount;
+
+-- Insert dummy profiles 
+INSERT INTO StudentProfile (AccountID, FullName, DateOfBirth, Skills, Resume, Bio) VALUES 
+(1, 'Ahmed Mansour', '2002-05-14', 'C++, SQL', 'resumes/ahmed.pdf', 'Aspiring Software Engineer with a deep interest in backend systems and database optimization. Currently exploring high-performance computing.'),
+(2, 'Sara Al-Farsi', '2001-11-20', 'UI/UX', 'resumes/sara.pdf', 'Passionate UI/UX Designer focused on creating inclusive and accessible digital experiences. Love turning complex problems into intuitive designs.'),
+(3, 'Omar Hassan', '2003-02-10', 'Python, CSS', 'resumes/omar.pdf', 'Tech enthusiast and open-source contributor. I enjoy automating boring tasks with Python and experimenting with modern CSS frameworks.'),
+(4, 'Zainab Qureshi', '2002-08-30', 'Java, MySQL', 'resumes/zainab.pdf', 'Dedicated Software Developer with a strong foundation in Object-Oriented Programming. Always eager to build scalable web applications.'),
+(5, 'Hamza Malik', '2001-04-05', 'C#, Data Structures', 'resumes/hamza.pdf', 'Focused on game development and backend architecture. I spend my free time solving algorithmic challenges and learning about cloud infrastructure.'),
+(6, 'Maryam Idris', '2002-12-12', 'Photoshop, HTML', 'resumes/maryam.pdf', 'Frontend Developer with a keen eye for aesthetics. I bridge the gap between design and code to build beautiful, responsive websites.'),
+(7, 'Yousef Bakir', '2003-06-25', 'JS, PHP', 'resumes/yousef.pdf', 'Full Stack Developer in the making. I love the thrill of connecting a dynamic frontend with a robust server-side logic.'),
+(8, 'Fatima Zahra', '2002-01-15', 'Android, XML', 'resumes/fatima.pdf', 'Mobile App Developer passionate about the Android ecosystem. Committed to building apps that make a real difference in people’s daily lives.'),
+(9, 'Bilal Khan', '2001-09-08', 'C, Linux', 'resumes/bilal.pdf', 'Systems Engineer interested in low-level programming and cybersecurity. I enjoy digging into the Linux kernel and network protocols.'),
+(10, 'Ayesha Siddiqa', '2002-03-22', 'Figma, UX', 'resumes/ayesha.pdf', 'UX Researcher driven by user empathy. I believe that understanding the "why" behind user behavior is the key to successful product design.');
+
+UPDATE StudentProfile SET University = 'FAST NUCES' WHERE AccountID IN (1, 2);
+UPDATE StudentProfile SET University = 'NUST' WHERE AccountID IN (3, 4, 8);
+UPDATE StudentProfile SET University = 'LUMS' WHERE AccountID IN (5, 6);
+UPDATE StudentProfile SET University = 'UET' WHERE AccountID IN (7, 9, 10);
+
+Select* from StudentProfile;
+
+-- Example: SignUp a new user
+INSERT INTO StudentAccount (Email, Password) 
+VALUES ('zayd.mhd@student.edu', 'Zayd_Secure786');
+
+INSERT INTO StudentProfile (AccountID, FullName, DateOfBirth, Skills, Resume) 
+VALUES (LAST_INSERT_ID(), 'Zayd Mansoor', '2003-04-12', 'Intro to Java, HTML5', 'resumes/zayd_m.pdf');
+
+-- Example: LogIn
+SELECT AccountID FROM StudentAccount 
+WHERE Email = 'zayd.mhd@student.edu' AND Password = 'Zayd_Secure786';
+
+-- Example: View profile
+SELECT A.Email, P.FullName, P.Skills, P.Bio, P.Resume 
+FROM StudentAccount A 
+JOIN StudentProfile P ON A.AccountID = P.AccountID 
+WHERE A.AccountID = 1;
+
+-- Example: Search by skill
+SELECT FullName, Skills FROM StudentProfile WHERE Skills LIKE '%Java%';
+
+-- Example: Update profile
+UPDATE StudentProfile 
+SET Skills = 'Java, MySQL, Python', Bio = 'Learning Data Science' 
+WHERE AccountID = 1;
+
+-- Example: Change password
+UPDATE StudentAccount 
+SET Password = 'New_Secure_Pass_2025' 
+WHERE AccountID = 1;
+
+-- Example: Delete account (will also delete profile)
+DELETE FROM StudentAccount WHERE AccountID = 1;
+-- 1. SignUp: Check availability of email
+SELECT COUNT(*) AS EmailExists FROM StudentAccount WHERE Email = 'zayd.mhd@student.edu';
+
+-- 2. LogIn: Validate user credentials
+SELECT AccountID FROM StudentAccount 
+WHERE Email = 'zayd.mhd@student.edu' AND Password = 'Zayd_Secure786';
+
+-- 3. View Profile
+SELECT A.Email, P.FullName, P.Skills, P.Bio, P.Resume 
+FROM StudentAccount A 
+JOIN StudentProfile P ON A.AccountID = P.AccountID 
+WHERE A.AccountID = 3;
+
+-- 4. Search for specific skill
+SELECT FullName, Skills 
+FROM StudentProfile 
+WHERE Skills LIKE '%Java%';
+
+-- 5. Update Profile fields
+UPDATE StudentProfile 
+SET Skills = 'Java, MySQL, Python', Bio = 'Learning Data Science' 
+WHERE AccountID = 5;
+
+-- 6. Change Password
+UPDATE StudentAccount 
+SET Password = 'New_Secure_Pass_2025' 
+WHERE AccountID = 7;
+
+-- 7. Update Full Name
+UPDATE StudentProfile 
+SET FullName = 'Ahmed Mansour Ali' 
+WHERE AccountID = 5;
+
+-- 8. Update Bio
+UPDATE StudentProfile 
+SET Bio = 'Final year CS student at NUST, focusing on backend development and database security.' 
+WHERE AccountID = 8;
+
+-- 9. Update Date of Birth
+UPDATE StudentProfile 
+SET DateOfBirth = '2002-05-15' 
+WHERE AccountID = 1;
+
+-- 10. Update all profile details
+UPDATE StudentProfile 
+SET FullName = 'Ahmed Mansour Ali',
+    DateOfBirth = '2002-05-15',
+    Skills = 'Java, MySQL, Python, PHP',
+    Bio = 'Final year CS student at NUST, focusing on backend development.',
+    Resume = 'uploads/new_resume.pdf'
+WHERE AccountID = 3;
+
+-- 11. Remove Resume
+UPDATE StudentProfile 
+SET Resume = NULL 
+WHERE AccountID = 3;
+
+-- 12. Delete Account (cascade removes profile)
+DELETE FROM StudentAccount 
+WHERE AccountID = 3;
+
+INSERT INTO Company (CompanyName, ContactEmail, Password, Industry, Location) VALUES
+('TechFlow Solutions', 'hr@techflow.com', 'FlowPass123', 'Software Development', 'Islamabad'),
+('Creative Minds', 'jobs@creative.com', 'CreatePass123', 'Design & Marketing', 'Lahore'),
+('CyberSecure', 'recruitment@cyber.io', 'SecurePass123', 'Cybersecurity', 'Karachi');
+
+INSERT INTO Project (AccountID, Title, Description)
+VALUES
+(1, 'AI Chatbot', 'A chatbot using Python and NLP techniques to answer student queries.'),
+(1, 'Machine Learning Portfolio', 'A portfolio of ML projects including prediction models and datasets.'),
+(2, 'Portfolio Website', 'A personal website showcasing UI/UX projects and designs.'),
+(3, 'Data Analysis Tool', 'A tool using Python and Excel to analyze datasets and generate reports.'),
+(4, 'Online Library System', 'A library management system using Java and MySQL.'),
+(5, 'Inventory Management App', 'C# application to manage store inventory and track sales.'),
+(6, 'Graphic Design Portfolio', 'Collection of digital designs and artwork using Photoshop and Canva.'),
+(7, 'E-commerce Website', 'A full-stack website for selling products using JavaScript and PHP.'),
+(8, 'Mobile Banking App', 'An Android app for basic banking transactions with SQLite backend.'),
+(9, 'Linux Command Automation', 'Scripts to automate tasks and manage files using Linux shell.');
+Select* from Project;
+
+-- CREATE: Upload a new project
+INSERT INTO Project (AccountID, Title, Description)
+VALUES
+(2, 'Campus Navigation App',
+ 'A mobile app to help students navigate the university campus.');
+ 
+-- UPDATE: Edit project details
+UPDATE Project
+SET Title = 'Advanced AI Chatbot',
+    Description = 'Enhanced chatbot with machine learning capabilities.'
+WHERE ProjectID = 1;
+
+-- DELETE: Remove a project
+DELETE FROM Project
+WHERE ProjectID = 11;
+
+-- READ: Search projects by tag
+SELECT p.ProjectID, p.Title
+FROM Project p
+JOIN ProjectTag pt ON p.ProjectID = pt.ProjectID
+JOIN Tags t ON pt.TagID = t.TagID
+WHERE t.TagName = 'Python';
+
+ALTER TABLE ContactRequest
+ADD COLUMN Status VARCHAR(20) DEFAULT 'Pending';
+
+-- Insert sample Bookmarks (Students saving interesting projects)
+INSERT INTO Bookmark (AccountID, ProjectID) VALUES 
+(1, 3), -- Ahmed bookmarks Portfolio Website
+(2, 1), -- Sara bookmarks AI Chatbot
+(3, 8), -- Omar bookmarks E-commerce Website
+(4, 9); -- Zainab bookmarks Mobile Banking App
+
+-- Insert sample Notifications (Simulating alerts for students)
+INSERT INTO Notification (AccountID, Message) VALUES 
+(1, 'TechFlow Solutions sent you a contact request regarding "AI Chatbot".'),
+(2, 'Creative Minds viewed your profile.'),
+(6, 'CyberSecure sent you a contact request for "Graphic Design Portfolio".'),
+(1, 'Your project "AI Chatbot" received a new bookmark.');
+
+SELECT * FROM Bookmark;
+SELECT * FROM Notification;
+
+-- Use Case: Student (ID 5) bookmarks a Project (ID 10)
+INSERT INTO Bookmark (AccountID, ProjectID) 
+VALUES (5, 10);
+
+-- Use Case: System generates a notification when a company sends a request
+INSERT INTO Notification (AccountID, Message) 
+VALUES (5, 'A company has sent you a new message!');
+
+-- Use Case: Student views all projects they have bookmarked
+SELECT B.BookmarkID, P.Title AS ProjectName, S.FullName AS Author, B.BookmarkDate
+FROM Bookmark B
+JOIN Project P ON B.ProjectID = P.ProjectID
+JOIN StudentProfile S ON P.AccountID = S.AccountID
+WHERE B.AccountID = 1;
+
+-- Use Case: Student checks their unread notifications
+SELECT Message, CreatedAt 
+FROM Notification 
+WHERE AccountID = 1 AND IsRead = FALSE 
+ORDER BY CreatedAt DESC;
+
+-- Use Case: Student clicks on a notification to clear it
+UPDATE Notification 
+SET IsRead = TRUE 
+WHERE NotificationID = 1;
+
+-- Use Case: Student un-bookmarks a project
+DELETE FROM Bookmark 
+WHERE AccountID = 1 AND ProjectID = 3;
+
+-- Use Case: Student deletes a notification from their history
+DELETE FROM Notification 
+WHERE NotificationID = 4;
+
+-- View Student Interactions: Who contacted me?
+SELECT C.CompanyName, CR.Message, CR.Status, CR.CreatedAt
+FROM ContactRequest CR
+JOIN Company C ON CR.CompanyID = C.CompanyID
+WHERE CR.AccountID = 1;
+
+INSERT INTO Tags (TagName) VALUES
+('AI'), ('Python'), ('NLP'), ('Machine Learning'), ('Data'), 
+('Web'), ('UI'), ('Portfolio'), ('Data Analysis'), ('Excel'),
+('Java'), ('MySQL'), ('OOP'), ('C#'), ('SQL'),
+('Inventory'), ('Photoshop'), ('Design'), ('JavaScript'), ('PHP'),
+('Android'), ('SQLite'), ('Mobile'), ('Linux'), ('Shell'), ('Scripting');
+Select* from Tags;
+
+-- Project 1: AI Chatbot
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(1, 1),  -- AI
+(1, 2),  -- Python
+(1, 3);  -- NLP
+
+-- Project 2: Machine Learning Portfolio
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(2, 4),  -- Machine Learning
+(2, 2),  -- Python
+(2, 5);  -- Data
+
+-- Project 3: Portfolio Website
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(3, 6),  -- Web
+(3, 7),  -- UI
+(3, 8);  -- Portfolio
+
+-- Project 4: Data Analysis Tool
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(4, 2),  -- Python
+(4, 9),  -- Data Analysis
+(4, 10); -- Excel
+
+-- Project 5: Online Library System
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(5, 11), -- Java
+(5, 12), -- MySQL
+(5, 13); -- OOP
+
+-- Project 6: Inventory Management App
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(6, 14), -- C#
+(6, 15), -- SQL
+(6, 16); -- Inventory
+
+-- Project 7: Graphic Design Portfolio
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(7, 17), -- Photoshop
+(7, 7),  -- UI
+(7, 18); -- Design
+
+-- Project 8: E-commerce Website
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(8, 6),  -- Web
+(8, 19), -- JavaScript
+(8, 20); -- PHP
+
+-- Project 9: Mobile Banking App
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(9, 21), -- Android
+(9, 22), -- SQLite
+(9, 23); -- Mobile
+
+-- Project 10: Linux Command Automation
+INSERT INTO ProjectTag (ProjectID, TagID) VALUES
+(10, 24), -- Linux
+(10, 25), -- Shell
+(10, 26); -- Scripting
+Select* from ProjectTag;
+
+-- Use Case A: Send a Contact Request to a Student
+INSERT INTO ContactRequest (AccountID, CompanyID, Message, Status)
+VALUES (1, 1, 'We were impressed by your C++ skills and would like to interview you.', 'Pending');
+
+-- Use Case B: Bookmark a Student
+INSERT INTO CompanyBookmark (CompanyID, AccountID, Note)
+VALUES (2, 6, 'Great portfolio in UI/UX, potential hire for Q3');
+
+
+-- READ: Search Students & Projects
+
+-- Use Case A: Search Students by Skill
+SELECT P.FullName, P.University, P.Skills, P.Resume
+FROM StudentProfile P
+WHERE P.Skills LIKE '%Python%';
+
+-- Use Case B: Search Students by University
+SELECT FullName, Skills, Bio
+FROM StudentProfile
+WHERE University = 'NUST';
+
+-- Use Case C: Search Projects by Tags
+SELECT Proj.Title, Proj.Description, T.TagName, S.FullName
+FROM Project Proj
+JOIN ProjectTag PT ON Proj.ProjectID = PT.ProjectID
+JOIN Tags T ON PT.TagID = T.TagID
+JOIN StudentAccount A ON Proj.AccountID = A.AccountID
+JOIN StudentProfile S ON A.AccountID = S.AccountID
+WHERE T.TagName IN ('Web', 'Mobile');
+
+-- Use Case D: View a Company's Bookmarked Students
+SELECT S.FullName, S.Skills, CB.Note, CB.SavedAt
+FROM CompanyBookmark CB
+JOIN StudentProfile S ON CB.AccountID = S.AccountID
+WHERE CB.CompanyID = 2;
+
+
+-- UPDATE: Manage Requests
+
+-- Use Case: Update Contact Request Status
+UPDATE ContactRequest
+SET Status = 'Accepted'
+WHERE RequestID = 1;
+
+-- DELETE: Remove Data
+
+-- Use Case: Remove a Bookmark 
+DELETE FROM CompanyBookmark
+WHERE CompanyID = 2 AND AccountID = 6;
